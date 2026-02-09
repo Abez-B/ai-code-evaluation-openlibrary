@@ -12,13 +12,16 @@ permissions:
 jobs:
   swe-bench-eval:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/swebench-hackathon/openlibrary-python312:latest
-      options: --user root
+
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
       - name: Install Agent Dependencies
         run: |
