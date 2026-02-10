@@ -29,8 +29,9 @@ jobs:
 
       - name: Setup Target Repository
         run: |
-          rm -rf /testbed
-          git clone https://github.com/internetarchive/openlibrary.git /testbed
+          sudo rm -rf /testbed
+          sudo git clone https://github.com/internetarchive/openlibrary.git /testbed
+          sudo chown -R $USER:$USER /testbed
           cd /testbed
           git config --global --add safe.directory /testbed
           git reset --hard 84cc4ed5697b83a849e9106a09bfed501169cc20
