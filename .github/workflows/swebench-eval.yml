@@ -5,6 +5,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      task_id:
+        description: 'Task ID to run'
+        required: false
+        default: 'internetarchive__openlibrary-c4eebe6677acc4629cb541a98d5e91311444f5d4'
 
 permissions:
   contents: write
@@ -29,18 +34,34 @@ jobs:
 
       - name: Setup Target Repository
         run: |
-          sudo rm -rf /testbed
-          sudo git clone https://github.com/internetarchive/openlibrary.git /testbed
-          sudo chown -R $USER:$USER /testbed
-          cd /testbed
-          git config --global --add safe.directory /testbed
-          git reset --hard 84cc4ed5697b83a849e9106a09bfed501169cc20
+          chmod +x setup_repository.sh
+          bash setup_repository.sh
 
       - name: Run AI Agent (Claude)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           python run_claude.py
+          
+      - name: Generate GitHub Actions Summary
+        if: always()
+        run: |
+          echo "## 🤖 SWE-bench Evaluation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f result.json ]; then
+            echo "### 📊 Metrics" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat result.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Artifacts Generated" >> $GITHUB_STEP_SUMMARY
+          echo "- agent.log" >> $GITHUB_STEP_SUMMARY
+          echo "- prompts.log" >> $GITHUB_STEP_SUMMARY
+          echo "- result.json" >> $GITHUB_STEP_SUMMARY
+          echo "- pre_verification.log" >> $GITHUB_STEP_SUMMARY
+          echo "- post_verification.log" >> $GITHUB_STEP_SUMMARY
+          echo "- changes.patch" >> $GITHUB_STEP_SUMMARY
 
       - name: Extract Metrics
         if: always()
